@@ -1,0 +1,36 @@
+{
+  "name": "openclaw-amk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Phase 1 OpenClaw AMK isolation plugin prototype",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "openclaw": {
+    "id": "openclaw-amk",
+    "extensions": [
+      "./index.js"
+    ]
+  },
+  "scripts": {
+    "test": "npm run test:manifest && npm run test:host && npm run test:core",
+    "test:manifest": "node test/plugin-manifest-regression.mjs",
+    "test:host": "node test/openclaw-host-functional.mjs",
+    "test:core": "node test/core-scope-behavior.mjs",
+    "test:openclaw-install": "bash scripts/smoke-openclaw-install.sh",
+    "plugin:uninstall": "bash scripts/uninstall.sh",
+    "plugin:purge": "bash scripts/uninstall.sh --purge",
+    "plugin:upgrade": "bash scripts/upgrade.sh",
+    "plugin:upgrade:version": "bash scripts/upgrade.sh --version"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "id": "openclaw-amk",
+  "name": "OpenClaw AMK",
+  "description": "Phase-1 isolation plugin for scoped files, transcript storage, and memory namespace routing",
+  "version": "0.1.0",
+  "kind": "memory",
+  "requirements": {
+    "node": ">=20"
+  },
+  "setup": {
+    "notes": [
+      "After install, bind the memory slot in ~/.openclaw/openclaw.json: plugins.slots.memory = \"openclaw-amk\"",
+      "Enable the plugin entry: plugins.entries.openclaw-amk.enabled = true",
+      "If you use OpenClaw built-in memory search in the same agent flow, document the routing boundary clearly to avoid duplicate memory paths",
+      "Validate config after changes: openclaw config validate",
+      "Restart the gateway after config changes: openclaw gateway restart"
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "isolationMode": {
+        "type": "string",
+        "enum": ["session", "user"],
+        "default": "user"
+      },
+      "openclawDataRoot": {
+        "type": "string"
+      },
+      "storage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "root": {
+            "type": "string"
+          }
+        }
+      },
+      "sessionStorage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "preferWorkspaceLocal": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "transcript": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "memory": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    }
+  }
+}
