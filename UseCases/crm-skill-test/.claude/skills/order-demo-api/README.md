@@ -1,0 +1,216 @@
+# order-demo-api
+
+项目内 Claude Code skill，用于连接 `Order Demo Workspace API`。
+
+## 文件说明
+
+- `SKILL.md`：skill 入口说明与调用规则
+- `client.py`：Python 客户端，负责登录、鉴权和请求发送
+- `api_map.json`：命名动作与接口路径映射
+
+## 配置文件
+
+推荐使用本地配置文件，而不是把凭证写死在命令里。
+
+1. 复制示例文件：
+
+```bash
+cp .claude/skills/order-demo-api/config.example.json .claude/skills/order-demo-api/config.json
+```
+
+2. 在 `config.json` 中填写以下任一方式：
+
+### 方式一：直接提供 token
+
+```json
+{
+  "token": "your-jwt-token"
+}
+```
+
+### 方式二：提供用户名密码
+
+```json
+{
+  "username": "your-username",
+  "password": "your-password"
+}
+```
+
+### 方式三：自定义登录 payload
+
+```json
+{
+  "login_payload": {
+    "email": "demo@example.com",
+    "password": "secret"
+  }
+}
+```
+
+### 可选配置项
+
+```json
+{
+  "base_url": "http://111.229.202.81:3021/api/v1",
+  "login_path": "/auth/login",
+  "timeout": 20
+}
+```
+
+默认读取 `.claude/skills/order-demo-api/config.json`，并且环境变量仍可覆盖同名配置。
+
+### 配置校验规则
+
+客户端启动时会先校验 `config.json`：
+
+- 仅支持这些字段：`base_url`、`login_path`、`timeout`、`token`、`username`、`password`、`login_payload`
+- `base_url`、`login_path`、`token`、`username`、`password` 必须是字符串
+- `timeout` 必须是大于 0 的数字
+- `login_payload` 必须是 JSON object
+- `username` 和 `password` 必须一起提供，不能只填一个
+
+如果配置不合法，客户端会直接报清晰错误，而不是等到请求阶段再失败。
+
+## 环境变量
+
+如果你更习惯环境变量，也可以继续使用：
+
+```bash
+export CRM_API_TOKEN='your-jwt-token'
+export CRM_API_USERNAME='your-username'
+export CRM_API_PASSWORD='your-password'
+export CRM_API_LOGIN_PAYLOAD='{"email":"demo@example.com","password":"secret"}'
+export CRM_API_BASE_URL='http://111.229.202.81:3021/api/v1'
+export CRM_API_LOGIN_PATH='/auth/login'
+export CRM_API_TIMEOUT='20'
+```
+
+## 常用命令
+
+列出可用动作：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py list-actions
+```
+
+查看当前用户：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py me
+```
+
+查看 dashboard 概览：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py 中文 概览
+```
+
+查询客户列表：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py 中文 客户 列表 --query '{"page":1,"pageSize":20}'
+```
+
+查询订单详情：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py 中文 订单 查看 --id order_123
+```
+
+创建产品：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py 中文 产品 新增 --body '{"name":"Demo Product"}'
+```
+
+搜索知识库：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py 中文 知识库 搜索 --body '{"query":"退款"}'
+```
+
+通用请求：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py request GET /products --query '{"page":1}'
+python3 .claude/skills/order-demo-api/client.py request PATCH /customers/cus_123 --body '{"name":"New Name"}'
+```
+
+## 调试建议
+
+先做最小验证：
+
+```bash
+python3 .claude/skills/order-demo-api/client.py list-actions
+python3 .claude/skills/order-demo-api/client.py 中文 概览
+python3 .claude/skills/order-demo-api/client.py 中文 客户 列表
+```
+
+### 销售支持与客服场景：必须先查询知识库
+
+当需要向客户提供销售支持、客服答疑、产品推荐时，请务必先检索知识库：
+
+```bash
+# 步骤1：根据场景选择关键词检索
+
+# 行业方案咨询
+python3 .claude/skills/order-demo-api/client.py 中文 知识库 搜索 --body '{"query":"餐饮 门店 方案"}'
+
+# 产品能力咨询
+python3 .claude/skills/order-demo-api/client.py 中文 知识库 搜索 --body '{"query":"排队 叫号 功能"}'
+
+# 会员营销
+python3 .claude/skills/order-demo-api/client.py 中文 知识库 搜索 --body '{"query":"会员 营销 活动"}'
+
+# 客服FAQ
+python3 .claude/skills/order-demo-api/client.py 中文 知识库 搜索 --body '{"query":"如何使用 配置"}'
+
+# 案例查询
+python3 .claude/skills/order-demo-api/client.py 中文 知识库 搜索 --body '{"query":"成功案例 客户"}'
+
+# 步骤2：基于检索结果回复或推荐
+```
+
+### 必须先查知识库的场景（不仅限于产品推荐）
+
+1. **产品/方案推荐** - 给客户推荐产品/模块
+2. **销售支持** - 回答产品功能、价格、套餐、优惠、方案咨询
+3. **客服场景** - 解答使用问题、操作指引、配置说明
+4. **客户咨询** - 行业方案、业务流程、技术实现咨询
+5. **知识查询** - 查案例、方案、FAQ、操作手册
+
+### 为什么必须先查知识库
+
+- **准确性**：知识库内容经过审核，比记忆更准确
+- **完整性**：避免遗漏重要产品能力或案例
+- **一致性**：确保不同客户收到一致的信息
+- **可追溯**：回答有据可依，便于后续跟进
+
+如果返回 401：
+- 先检查这个接口是否本来就要求鉴权
+- 若要求鉴权，在 `config.json` 中补 `token`，或补 `username/password`
+- 只有你明确配置了用户名密码 / 登录 payload 时，客户端才会尝试自动重试一次
+- 如果只填了 `username` 或只填了 `password`，客户端会直接报错，提示你把两者一起补齐
+
+如果返回 404：
+- 检查 `CRM_API_BASE_URL`
+- 检查资源 ID 或路径
+
+如果返回 400 / 422：
+- 检查 `--body` 或 `--query` 的 JSON 结构
+- 重新确认接口实际需要的字段
+
+## 输出结构
+
+客户端默认返回三层信息：
+
+- `summary`：一句中文摘要，适合直接给 skill / agent 使用
+- `display`：提炼后的展示数据，适合 UI 或自然语言层消费
+- `data`：原始接口响应，便于调试或二次处理
+
+建议上层优先消费 `summary` 和 `display`，只在需要排查问题时再查看 `data`。
+
+## 说明
+
+Swagger 当前没有暴露详细 schema，因此首版客户端采用“路径 + 方法 + body/query 透传”的方式，确保先把调用链路打通，再逐步细化字段映射。
